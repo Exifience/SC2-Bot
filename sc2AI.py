@@ -1,8 +1,7 @@
 import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.player import Bot, Computer
-from sc2.constants import NEXUS, PROBE, PYLON, ASSIMILATOR, GATEWAY, \
- CYBERNETICSCORE, STALKER, STARGATE, VOIDRAY
+from sc2.constants import *
 import random
 import cv2
 import numpy as np
@@ -26,12 +25,12 @@ class ExifienceBot(sc2.BotAI):
 
  async def intel(self):
   # for game_info: https://github.com/Dentosal/python-sc2/blob/master/sc2/game_info.py#L162
-  print(self.game_info.map_size)
+  #print(self.game_info.map_size)
   # flip around. It's y, x when you're dealing with an array.
   game_data = np.zeros((self.game_info.map_size[1], self.game_info.map_size[0], 3), np.uint8)
   for nexus in self.units(NEXUS):
    nex_pos = nexus.position
-   print(nex_pos)
+   #print(nex_pos)
    cv2.circle(game_data, (int(nex_pos[0]), int(nex_pos[1])), 10, (0, 255, 0), -1)  # BGR
 
   # flip horizontally to make our final fix in visual representation:
@@ -52,8 +51,9 @@ class ExifienceBot(sc2.BotAI):
   if self.supply_left < 5 and not self.already_pending(PYLON):
    nexuses = self.units(NEXUS).ready
    if nexuses.exists:
+    nexus = nexuses.first
     if self.can_afford(PYLON):
-     await self.build(PYLON, near=nexuses.first)
+     await self.build(PYLON, near=nexus.position.towards(self.game_info.map_center, 5))
 
  async def build_assimilators(self):
   for nexus in self.units(NEXUS).ready:
@@ -78,16 +78,16 @@ class ExifienceBot(sc2.BotAI):
 
    if self.units(GATEWAY).ready.exists and not self.units(CYBERNETICSCORE):
     if self.can_afford(CYBERNETICSCORE) and not self.already_pending(CYBERNETICSCORE):
-     await self.build(CYBERNETICSCORE, near=pylon)
+     await self.build(CYBERNETICSCORE, near=pylon.position.towards(self.game_info.map_center, 5))
 
    elif len(self.units(GATEWAY)) < 1:
     if self.can_afford(GATEWAY) and not self.already_pending(GATEWAY):
-     await self.build(GATEWAY, near=pylon)
+     await self.build(GATEWAY, near=pylon.position.towards(self.game_info.map_center, 5))
 
    if self.units(CYBERNETICSCORE).ready.exists:
     if len(self.units(STARGATE)) < ((self.iteration / self.ITERATIONS_PER_MINUTE)/2):
      if self.can_afford(STARGATE) and not self.already_pending(STARGATE):
-      await self.build(STARGATE, near=pylon)
+      await self.build(STARGATE, near=pylon.position.towards(self.game_info.map_center, 5))
 
  async def build_offensive_force(self):
   for sg in self.units(STARGATE).ready.noqueue:
