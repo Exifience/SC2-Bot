@@ -5,6 +5,7 @@ from sc2.constants import *
 import random
 import cv2
 import numpy as np
+from pprint import pprint
 
 class ExifienceBot(sc2.BotAI):
  def __init__(self):
@@ -22,6 +23,7 @@ class ExifienceBot(sc2.BotAI):
   await self.build_offensive_force()
   await self.intel()
   await self.attack()
+  await self.defend()
 
  async def intel(self):
   # for game_info: https://github.com/Dentosal/python-sc2/blob/master/sc2/game_info.py#L162
@@ -107,11 +109,19 @@ class ExifienceBot(sc2.BotAI):
   aggressive_units = {#STALKER: [15, 5],
                       VOIDRAY: [8, 3]}
 
-
   for UNIT in aggressive_units:
-   if self.units(UNIT).amount > aggressive_units[UNIT][0] and self.units(UNIT).amount > aggressive_units[UNIT][1]:
-    for s in self.units(UNIT).idle:
-     await self.do(s.attack(self.find_target(self.state)))
+   for s in self.units(UNIT).idle:
+    await self.do(s.attack(self.find_target(self.state)))
+
+ async def defend(self):
+  if len(self.known_enemy_units) > 0 or self.supply_used > 100:
+   self.attack()
+  else:
+   #nexus = self.units(NEXUS).furthest_to(self.game_info.map_center)
+   #defend_nexus = self.units(NEXUS).furthest_to(nexus.position)
+   for unit in self.units(VOIDRAY):
+    await self.do(unit.move(self.units(NEXUS).closest_to(self.game_info.map_center).position))
+
 
 
 run_game(maps.get("AbyssalReefLE"), [
