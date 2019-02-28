@@ -114,10 +114,11 @@ class ExifienceBot(sc2.BotAI):
     await self.do(s.attack(self.find_target(self.state)))
 
  async def defend(self):
-  if len(self.known_enemy_units) > 0 or self.supply_used > 100:
+  nexus_distance = self.units(NEXUS).furthest_distance_to(self.game_info.map_center)
+  furthest_nexus = self.units(NEXUS).furthest_to(self.game_info.map_center).position
+  if (len(self.known_enemy_units) > 0 and (self.known_enemy_units.closest_distance_to(furthest_nexus)) < nexus_distance) or self.supply_used > 100:
    self.attack()
   else:
-   #nexus = self.units(NEXUS).furthest_to(self.game_info.map_center)
    #defend_nexus = self.units(NEXUS).furthest_to(nexus.position)
    for unit in self.units(VOIDRAY):
     await self.do(unit.move(self.units(NEXUS).closest_to(self.game_info.map_center).position))
